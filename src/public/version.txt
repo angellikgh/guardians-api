@@ -1,0 +1,6 @@
+Version: 0.0.111
+Environment: staging
+ECR repo: nestjs-sample-server
+Service: nestjs-sample-server-staging-service
+Cluster: nestjs-sample-server
+Timestamp: 09-09-2021.16:14:23
