@@ -1,0 +1,18 @@
+# Ignore everything by default
+**
+
+# Explicitly set ignore exceptions
+!/prisma
+!/public
+!/src
+!/.eslintignore
+!/.eslintrc.json
+!/.prettierignore
+!/.prettierrc
+!/entrypoint.sh
+!/nest-cli.json
+!/package.json
+!/server-preload.js
+!/tsconfig.build.json
+!/tsconfig.json
+!/yarn.lock

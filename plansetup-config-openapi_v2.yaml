@@ -1,0 +1,1359 @@
+---
+openapi: 3.0.0
+info:
+  title: Policy API
+  description: "# Summary \nPolicy API endpoints allows the transmission of Policy data between Guardian and it's consumers.Policy data includes bill, class, rates and benefit level information. The API is designed according to REST (Representational State Transfer) principles and uses JavaScript Object Notation (JSON) for requests and responses. All API traffic is encrypted over HTTPS and authentication is handled with OAuth2.\n\n# Versioning   \nGroup Policy API uses url path prefixing to maintain different versions of the api. The format used is a v followed by the version number. Current version is v4. \n\n# Status Codes \nStatus Code  | Description \n-------------|-------------\n200          | Everything worked as expected. See response if applicable.\n400          | Bad Request. See error response with message.\n401          | Not a valid API key or Unauthorized.\n404          | Not Found. Either no API endpoint was found or there were no results for given parameters. \n500          | Internal Server Error. \n \n# Authentication and Authorization  \nGroup policy API leverages Guardian�s Authorization server to provide secure access using the JWT client credentials grant.\n \n#  \n   \n"
+  termsOfService: https://gc-developer.dev.aws.glic.com/terms-and-conditions
+  contact:
+    name: API Support
+    email: API_Admin@glic.com
+  version: 4.0.0
+  x-logo:
+    altText: Group Insurance logo
+servers:
+- url: https://apisvcauth.dev.aws.glic.com/group/policy
+  description: development server
+- url: https://apisvc.qa.guardianlife.com/group/policy
+  description: test server
+- url: https://apisvc.guardianlife.com/group/policy
+  description: production server
+tags:
+- name: Plan Setup Configuration
+  description: group policy plan setup configuration
+paths:
+  /v4/policies/plan/setup/configuration:
+    post:
+      tags:
+      - Plan Setup Configuration
+      summary: Configure Plan Information.
+      description: This end point will be used for benAdmin to send the policy plan setup configuration.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transmission'
+        required: true
+      responses:
+        "200":
+          description: Request is processed as expected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: No results found
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Transmission:
+      description:
+        An instance of the electronically transmitted information, such as the
+        Benefit Administrator, Insurance Carrier, version, etc.
+      required:
+        - transmission_guid
+        - sender_name
+        - receiver_name
+        - creation_date_time
+        - test_production_code
+        - transmission_type_code
+        - schema_version_identifier
+        - employer
+      type: object
+      
+      properties:
+        transmission_guid:
+          description:
+            Global unique identifier created by the originator for this instance of the electronic transmission.
+          type: string
+          example: 030c89b1-8732-492b-b69a-2239e14264e5
+        sender_name:
+          type: string
+          description: Name of the company sending electronic benefit records on behalf of a group.
+          example: BagelCorporation
+        receiver_name:
+          description: Name of the company receiving electronic benefit records.
+          type: string
+          example: Guardian
+        creation_date_time:
+          description: UTC date and time the transmission was created.
+          type: string
+          example: "2019-08-23T15:36:40.881"
+        test_production_code:
+          $ref: '#/components/schemas/TestProduction'
+        transmission_type_code:
+          $ref: '#/components/schemas/TransmissionType'
+        schema_version_identifier:
+          description: Identifies the version of the standard that is being adhered to in this data set.
+          type: string
+          example: 1.1.5
+        employer:
+          $ref: '#/components/schemas/Employer'
+          
+    TestProduction:
+      description: Indicates the elements contained in this data set are production or test data.
+      enum:
+        - Test
+        - Production
+      type: string
+      example: Test
+    TransmissionType:
+      description: The type of data contained within the data set.
+      enum:
+        - FullFile
+      type: string
+      example: FullFile
+      
+    Employer:
+      required:
+      - employer_name
+      - policy_effective_date
+      - requested_renewal_date
+      - employer_legal_address
+      - sic_code
+      - type_of_organization
+      - federal_employer_identification_number
+      - date_established
+      - correspondent
+      - bankruptcy
+      - applied_for_guardian_benefits_before
+      - master_application_signature
+      - master_application_signature_date
+      - insurance_broker_information
+      - employees
+      - contribution
+      - benefit_class_definitions
+      - enrollment
+      - waiting_period_rules
+      - domestic_partner
+      - open_enrollments
+      - coverage
+      type: object
+      properties:
+        employer_name:
+          description: Legal name of the employer.
+          type: string
+          example: "ABC Corporation"
+        policy_effective_date:
+          description: Effective date of the policy and date format should be MM/DD/YYYY.
+          type: string
+          example: "01/21/2021"
+        requested_renewal_date:
+          description: Renewal date of the policy and date format should be MM/DD/YYYY.
+          type: string
+          example: "01/21/2021"
+        employer_legal_address:
+          $ref: '#/components/schemas/EmployerLegalAddress'
+        main_billing_address_of_applicant:
+          $ref: '#/components/schemas/MainBillingAddressOfApplicant'
+        sic_code:
+          description: It is Standard Industrial Code.
+          type: string
+          example: ""
+        type_of_organization:
+          $ref: '#/components/schemas/Organization'
+        nature_of_business:
+          description: nature of business.
+          type: string
+          example: ""
+        federal_employer_identification_number:
+          description: A nine-digit unique number assigned by the Internal Revenue Service (IRS) to businesses operating in the United States.
+          type: string
+          example: "123456789"
+        date_established:
+          description: Established date. Date format should be MM/DD/YYYY.
+          type: string
+          example: "01/21/2020"
+        guard_o_matic_information_for_eft:
+          type: object
+          properties:
+            guard_o_matic:
+              description: Guard O Matic Information for EFT
+              type: boolean
+              example: true
+            account_number:
+              description: Account number required requirements - Situational - if when GuardOMatic is true.
+              type: string
+              example: "4567895647"
+            transit_number:
+              description: Transit number required requirements - Situational - if when GuardOMatic is true.
+              type: string
+              example: ""
+            bank_name:
+              description: Bank Name required requirements - Situational - if when GuardOMatic is true.
+              type: string
+              example: ""
+        correspondent:
+          $ref: '#/components/schemas/Correspondent'
+        bankruptcy:
+          $ref: '#/components/schemas/Bankruptcy'
+        applied_for_guardian_benefits_before:
+          type: object
+          required: 
+            - applied_guardian_benefits
+          properties:
+            applied_guardian_benefits:
+              description: Describes whether they applied for guardian benefits before.
+              type: boolean
+              example: true
+            master_agreement_number:
+              type: string
+              example: ""
+        workers_compensation:
+          description: Required requirements - Situational - if LTD or STD is an elected coverage.
+          type: object
+          properties:
+            present_carrier_name:
+              type: string
+              example: ""
+            anyone_not_covered:
+              type: boolean
+              example: true
+            list_owner_partner:
+              type: string
+              example: ""
+        cobra_participants:
+          type: object
+          properties:
+            cobra_participants:
+              description: Whether it is Cobra participants.
+              type: boolean
+              example: true
+            participant:
+              type: array
+              items:
+                $ref: '#/components/schemas/Participant'
+        health_related_information:
+          description: Requirements - Situational - Required if STD, LTD or LIFE coverage is elected.
+          type: object
+          properties:
+            are_any_employees_not_actively_at_work:
+              description: Is the empolyee not actively at work details.
+              type: string
+              example: ""
+        master_application_signature:
+          type: object
+          required: 
+            - signature
+            - owner
+          properties:
+            signature:
+              type: string
+              example: ""
+            owner:
+              type: object
+              required: 
+                - first_name
+                - last_name
+              properties:
+                first_name:
+                  type: string
+                  example: "Lucent"
+                last_name:
+                  type: string
+                  example: "Mary"
+                contact_email:
+                  type: string
+                  example: "lucent.mary@glic.com"
+                member_services_phone:
+                  type: string
+                  example: ""
+        master_application_signature_date:
+          description: Date format should be MM/DD/YYYY.
+          type: string
+          example: "01/21/2020"
+        insurance_broker_information:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsuranceBrokerInformation'
+        commissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Commissions'
+        affiliated_companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffiliatedCompanies'
+        employees:
+          type: object
+          required: 
+            - number_of_employees
+            - number_of_eligible_employees
+          properties:
+            number_of_employees:
+              type: string
+              example: "10"
+            number_of_eligible_employees:
+              type: string
+              example: "5"
+        contribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployerContribution'
+        benefit_class_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BenefitClassDefinitions'
+        prior_carrier:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriorCarrier'
+        enrollment:
+          type: object
+          required: 
+            - enrollment_end_date
+          properties:
+            enrollment_begin_date:
+              description: Format of date should be MM-DD.
+              type: string
+              example: 11-02
+            enrollment_end_date:
+              description: Format of date should be MM-DD.
+              type: string
+              example: 12-22
+        waiting_period_rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/WaitingPeriodRules'
+        domestic_partner:
+          type: object
+          required: 
+            - coverage_offered_to_domestic_partner
+            - coverage_offered_to_children_of_domestic_partner
+          properties:
+            coverage_offered_to_domestic_partner:
+              type: boolean
+              example: true
+            coverage_offered_to_children_of_domestic_partner:
+              type: boolean
+              example: true
+            plan_sitused_in_california:
+              description: Requirements - Situational
+              enum: 
+                - Registered
+                - RegisteredAndNonRegistered
+              type: string
+              example: Registered
+            plan_sitused_in_virginia:
+              description: Requirements - Situational
+              enum: 
+                - SameSex
+                - OppositeSex
+              type: string
+              example: SameSex
+        dependent_child_age_limit:
+          type: object
+          properties:
+            no_dependent_coverage:
+              type: string
+              example: ""
+            student_age_limit:
+              description: If student age limit is not specified, it is assumed to be the same as AgeLimit above.
+              type: string
+              example: ""
+            age_limit:
+              description: First limiting age before student status is requested upon.
+              type: string
+              example: ""
+        redetermination_type:
+          description: Requirements - Situational - Required IF coverage is STD/LTD.
+          enum: 
+            - Immediate
+            - PlanAnniversary
+            - OtherDate
+          type: string
+          example: OtherDate
+        redetermination_date:
+          $ref: '#/components/schemas/RedeterminationDate'
+        cobra:
+          type: object
+          properties:
+            members_currently_on_cobra:
+              type: string
+              example: ""
+            planholder_administering:
+              type: boolean
+              example: true
+            company_administering:
+              description: Only needed if PlanholderAdministering is false/null/blank.
+              type: string
+              example: ""
+        open_enrollments:
+          type: object
+          required: 
+            - open_enrollment
+          properties:
+            open_enrollment:
+              description: Indicates if the policyholder will have OpenEnrollment.
+              type: boolean
+              example: true
+            open_enrollment_from_date:
+              description: Format should be MM-DD. Requirements - Situational - required If OpenEnrollment is true.
+              type: string
+              example: "05-21"
+            open_enrollment_to_date:
+              description: Format should be MM-DD. Requirements - Situational - required If OpenEnrollment is true.
+              type: string
+              example: "06-25"
+            effective_date:
+              description: When coverage will be effective during Open enrollment. Format should be MM-DD. Requirements - Situational - required If OpenEnrollment is true.
+              type: string
+              example: "05-21"
+        section125:
+          type: boolean
+          example: true
+        coverage:
+          $ref: '#/components/schemas/Coverage'
+          
+            
+                
+    Coverage:
+      type: object
+      required: 
+        - billing_preferences
+      properties:
+        dental:
+          type: object
+          required: 
+            - product_descriptor
+            - contribution
+          properties:
+            product_descriptor:
+              type: string
+              example: ""
+            plan_type:
+              type: string
+              example: ""
+            plan_code:
+              type: string
+              example: ""
+            pponap_number:
+              type: string
+              example: ""
+            dhmo_reside:
+              type: array
+              items:
+                $ref: '#/components/schemas/DHMOReside'
+            contribution:
+              $ref: '#/components/schemas/Contribution'
+            co_insurance:
+              type: array
+              items:
+                $ref: '#/components/schemas/CoInsurance'
+            deductible:
+              type: array
+              items:
+                $ref: '#/components/schemas/Deductible'
+            orthodontia:
+              type: object
+              properties:
+                orthodontia_coinsurance_percent:
+                  type: string
+                orthodontia_maximum_amount:
+                  type: string
+            annual_maximum:
+              type: string
+            maximum_rollover:
+              type: object
+              properties:
+                threshold:
+                  type: string
+                rollover_amount:
+                  type: string
+                in_network_only_rollover:
+                  type: string
+                account_limit:
+                  type: string
+            claims_payment_basis:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClaimsPaymentBasis'
+            rates:
+              $ref: '#/components/schemas/Rates'
+        vision:
+          type: object
+          required: 
+            - product_descriptor
+            - lock_in_lock_out
+            - contribution
+            - rates
+          properties:
+            product_descriptor:
+              type: string
+            plan_type:
+              type: string
+            plan_network:
+              type: string 
+            lock_in_lock_out:
+              type: string
+            contributor_type:
+              $ref: '#/components/schemas/Contribution'
+            participation:
+              type: string
+            co_pay:
+              type: string
+            service_frequencies:
+              type: object
+              properties:
+                eye_exams:
+                  type: string
+                lenses_benefit:
+                  type: string
+                contact_lenses:
+                  type: string
+                frames:
+                  type: string
+            reimbursement_schedule:
+              type: array
+              items:
+                $ref: '#/components/schemas/ReimbursementSchedule'
+            frames:
+              type: object
+              properties:
+                retail_max:
+                  type: string
+            rates:
+              $ref: '#/components/schemas/Rates'
+        long_term_disability:
+          type: object
+          required: 
+            - product_descriptor
+            - rates
+          properties:
+            product_descriptor:
+              type: string
+            coverage_amount_percent:
+              type: string
+            coverage_amount_max:
+              type: string 
+            maximum_payment_period:
+              type: string
+            accident_benefits_begin:
+              type: string
+            illness_benefits_begin:
+              type: string
+            guarantee_issue:
+              type: string
+            pre_existing:
+              $ref: '#/components/schemas/PreExisting'
+            premium_waived_if_disabled:
+              type: string
+            benefit_earnings_definition:
+              $ref: '#/components/schemas/EarningsDefinition'
+            employees_reside:
+              $ref: '#/components/schemas/EmployeesReside'
+            rates:
+              type: array
+              items:
+                $ref: '#/components/schemas/RatesLTDSTD'
+        short_term_disability:
+          type: object
+          required: 
+            - product_descriptor
+            - rates
+          properties:
+            product_descriptor:
+              type: string
+            coverage_amount_percent:
+              type: string
+            coverage_amount_max:
+              type: string 
+            maximum_payment_period:
+              type: string
+            accident_benefits_begin:
+              type: string
+            illness_benefits_begin:
+              type: string
+            pre_existing:
+              $ref: '#/components/schemas/PreExisting'
+            benefit_earnings_definition:
+              $ref: '#/components/schemas/EarningsDefinition'
+            w2fica:
+              enum: 
+                - NoW2Reporting
+                - MemberReceivesW2AndNoFICAToEmployer
+              type: string
+            employees_reside:
+              $ref: '#/components/schemas/EmployeesReside'
+            rates:
+              type: array
+              items:
+                $ref: '#/components/schemas/RatesLTDSTD'
+        life:
+          type: object
+          required: 
+            - product_descriptor
+            - rates
+          properties:
+            product_descriptor:
+              type: string
+            employee_benefit:
+              type: string
+            accidental_death_and_dismemberment:
+              type: boolean 
+            conversion:
+              type: boolean
+            accelerated_life_benefit:
+              type: boolean
+            waiver_of_premiums:
+              type: boolean
+            age_reductions:
+              type: object
+              properties:
+                age_threshold:
+                  type: string
+                percentage_reduction:
+                  type: string
+            rates:
+              description: Rates for life.
+              type: object
+              properties:
+                employee:
+                  type: integer
+        add:
+          type: object
+          required: 
+            - rates
+          properties: 
+            rates:
+              description: Rates for ADD. Required to have 3 decimal places for ADD, requirment for entry in Phoenix.
+              type: object
+              properties:
+                employee:
+                  type: integer
+        billing_preferences:
+          type: object
+          required: 
+            - billing_frequency
+            - bill_delivery
+            - send_bills
+          properties:
+            billing_frequency:
+              enum: 
+                - Monthly
+                - Quarterly
+                - SemiYearly
+                - Yearly
+              type: string
+            bill_delivery:
+              enum: 
+                - Electronic
+                - StandardListBill
+                - SubtotalBilling
+                - Class
+              type: string
+            send_bills:
+              enum: 
+                - IndividualDivisions
+                - MainBillingOffice
+              type: string
+        delivery_of_plan_materials:
+          type: object
+          properties:
+            include_erisa_summary_in_certificate_booklet:
+              type: boolean
+            administration_kit:
+              description: Requirements - Situational - if when STD has sold. 
+              type: boolean
+            administration_kit_mailed_to:
+              description: Requirements - Situational.
+              enum: 
+                - PlanHolder
+                - Broker
+              type: string
+            dental_and_vision_id_card:
+              enum: 
+                - PlanLevel
+                - MemberLevel
+              type: string
+            shipped:
+              enum: 
+                - MemberHome
+              type: string
+      
+    RatesLTDSTD:
+      description: Rates for long_term_disability/short_term_disability.
+      type: object
+      properties:
+        employee:
+          type: integer
+          example: .35
+        age_band:
+          type: integer
+          example: 15
+    EmployeesReside:
+      type: object
+      properties:
+        state:
+          type: string
+        percent:
+          type: string
+    EarningsDefinition:
+      description: Indicates the type of earnings for salary benefit plans.
+      enum:
+      - BASE_SALARY
+      - BASE_SALARY_BONUS
+      - BASE_SALARY_COMMISSION
+      - BASE_SALARY_BONUS_COMMISSION
+      - W2
+      - CUSTOM
+      type: string
+    PreExisting:
+      type: object
+      properties:
+        months_look_back:
+          type: string
+        months_after_exclusion:
+          type: string
+    ReimbursementSchedule:
+      type: object
+      properties:
+        network_name:
+          $ref: '#/components/schemas/Network'
+        lenses_benefit:
+          enum: 
+            - SingleVision
+            - Bifocal
+            - Trifocal
+            - Lenticular
+          type: string
+          example: SingleVision
+        co_pay:
+          description: Requirements - required Only with InNetwork.
+          type: string
+        before_co_pay:
+          description: Requirements - required Only with OutOfNetwork.
+          type: string
+        contact_lenses:
+          enum: 
+            - MedicalNecessary
+            - ElectiveMaterials
+            - ElectiveFittingAndEvalution
+          type: string
+          example: MedicalNecessary
+        co_pay_waived:
+          description: Requirements - required Only with ElectiveMaterials.
+          type: string
+        discount:
+          description: Requirements - required Only with ElectiveFittingAndEvaluation.
+          type: string
+    Rates:
+      type: object
+      required: 
+        - employee 
+        - employee_and_spouse
+        - employee_and_children
+        - employee_family
+      properties:
+        employee:
+          type: integer
+        employee_and_spouse:
+          type: integer
+        employee_and_children:
+          type: integer
+        employee_family:
+          type: integer
+        rate_guarantee:
+          type: string
+    ClaimsPaymentBasis:
+      type: object
+      properties:
+        network_name:
+          $ref: '#/components/schemas/Network'
+        basis:
+          enum: 
+            - NegotiatedFeeSchedule
+            - 90th
+          type: string
+          example: NegotiatedFeeSchedule
+    Deductible:
+      type: object
+      properties:
+        network_name:
+          $ref: '#/components/schemas/Network'
+        service_name:
+          $ref: '#/components/schemas/ServiceName'
+        percent:
+          type: string
+    Network:
+      enum: 
+        - InNetwork
+        - OutOfNetwork
+      type: string
+      example: InNetwork
+    CoInsurance:
+      type: object
+      properties:
+        service_name:
+           $ref: '#/components/schemas/ServiceName'
+        percent:
+          type: string
+          example: ""
+    ServiceName:
+      enum: 
+        - Preventive
+        - Basic
+        - Major
+      type: string
+      example: Preventive
+    Contribution:
+      enum: 
+        - NonContributory
+        - Contributory
+        - Voluntary
+      type: string
+      example: NonContributory
+    DHMOReside:
+      enum: 
+        - NewJersey
+        - California
+        - Florida
+        - Illinois
+        - Texas
+        - Indiana
+        - Colorado
+        - Missouri
+        - Ohio
+        - Michigan
+      type: string
+      example: NewJersey
+    RedeterminationDate:
+      description: Format should be MM-DD. Requirements - Situational - Only need a value if OtherDate is selected.
+      type: object
+      properties:
+        redetermination_date_one:
+          type: string
+          example: 02-15
+        redetermination_date_two:
+          type: string
+          example: 02-16
+        redetermination_date_three:
+          type: string
+          example: 02-17
+        redetermination_date_four:
+          type: string
+          example: 02-18
+    WaitingPeriodRules:
+      type: object
+      required: 
+        - waiting_period_type
+        - waiting_period_rule_type
+        - not_coinciding_with_hire_date
+      properties:
+        coverage:
+          $ref: '#/components/schemas/CoverageType'
+        waiting_period_type:
+          description: Displays the waiting period type.
+          enum: 
+            - HiredOnEffectiveDateOfGroup
+            - HiredBeforeEffectiveDateOfGroup
+            - HiredAfterEffectiveDateOfGroup
+          type: string
+          example: HiredOnEffectiveDateOfGroup
+        waiting_period_rule_type:
+          description: Displays if the group has no waiting period, first of the month waiting period, etc.
+          enum: 
+            - HireDate
+            - FirstOfMonthAfter
+            - After
+            - FirstOfMonthAfterEvent
+            - FirstPayPeriodAfter
+            - FirstOfMonthAfterDateOfHire
+            - FifteenthOfMonthAfter
+            - FifteenthOfMonthAfterDateOfHire
+          example: HireDate
+        not_coinciding_with_hire_date:
+          description: Describes if the waiting period coincides with the employee hire date.
+          type: boolean
+          example: true
+        num_days:
+          description: Requirements - Situational - Required if when First Of Month, FifteenthOfMonth After OR After is selected from WaitingPeriodRuleType - One element MUST have a value. 
+          type: string
+          example: "15"
+        num_weeks:
+          description: Requirements - Situational - Required if when First Of Month, FifteenthOfMonth After OR After is selected from WaitingPeriodRuleType - One element MUST have a value. 
+          type: string
+          example: "7"  
+        num_months:
+          description: Requirements - Situational - Required if when First Of Month, FifteenthOfMonth After OR After is selected from WaitingPeriodRuleType - One element MUST have a value. 
+          type: string
+          example: "4"
+        num_years:
+          description: Requirements - Situational - Required if when First Of Month, FifteenthOfMonth After OR After is selected from WaitingPeriodRuleType - One element MUST have a value. 
+          type: string
+          example: "1"  
+    PriorCarrier:
+      type: object
+      properties:
+        prior_carrier:
+          type: boolean
+          example: true
+        coverage:
+          $ref: '#/components/schemas/CoverageType'
+        name_of_carrier:
+          type: string
+          example: ""
+        termination_date:
+          description: Date format should be MM/DD/YYYY.
+          type: string
+          example: "02/23/2021"
+    EmployerLegalAddress:
+      description: An address used for the delivery of letters and packages by an external mailing or packaging service, at a place where the recipient usually lives or works. Legal address must not have a PO Box.
+      type: object
+      required:
+        - first_line_address
+        - city_name
+        - postal_code
+        - state_province_code
+        - country_code
+        - mailing_address_same_as_legal_address
+      properties:
+        first_line_address:
+          description: The first line of a formatted address - e.g., Street Number + Street Name, etc.
+          type: string
+          example: 123 Any Street
+        second_line_address:
+          description: The second line of a formatted address
+          type: string
+          example: 10th Floor
+        third_line_address:
+          description: The third line of a formatted address that is sometimes used for things like 'care of'.
+          type: string
+          example: Care of Guardian
+        city_name:
+          description: The city where the address is located.
+          type: string
+          example: New York City
+        state_province_code:
+          $ref: '#/components/schemas/StateProvince'
+        postal_code:
+          description: The unique identifier used to associate postal deliveries. This may also be referred to as zip code or post code where the address is located.
+          type: string
+          example: 53027-1234
+        country_code:
+          $ref: '#/components/schemas/Country'
+        mailing_address_same_as_legal_address:
+          description: Identifies if the Mailing address is same as Legal address.
+          type: boolean
+          example: true
+    StateProvince:
+      description: A short, alphabetic geographic abbreviation for the state or province within a country.
+      enum:
+        - AL
+        - AK
+        - AZ
+        - AR
+        - CA
+        - CO
+        - CT
+        - DE
+        - FL
+        - GA
+        - HI
+        - ID
+        - IL
+        - IN
+        - IA
+        - KS
+        - KY
+        - LA
+        - ME
+        - MD
+        - MA
+        - MI
+        - MN
+        - MS
+        - MO
+        - MT
+        - NE
+        - NV
+        - NH
+        - NJ
+        - NM
+        - NY
+        - NC
+        - ND
+        - OH
+        - OK
+        - OR
+        - PA
+        - RI
+        - SC
+        - SD
+        - TN
+        - TX
+        - UT
+        - VT
+        - VA
+        - WA
+        - WV
+        - WI
+        - WY
+        - DC
+        - AS
+        - GU
+        - MP
+        - PR
+        - UM
+        - VI
+        - AB
+        - BC
+        - MB
+        - NB
+        - NL
+        - NS
+        - PE
+        - QE
+        - SU
+        - NT
+        - NU
+        - YT
+        - AG
+        - BS
+        - CM
+        - CS
+        - CH
+        - CL
+        - DF
+        - DG
+        - GT
+        - GR
+        - HG
+        - JA
+        - EM
+        - NA
+        - OA
+        - PU
+        - QT
+        - QR
+        - SL
+        - SI
+        - SO
+        - TB
+        - TM
+        - TL
+        - VE
+        - YU
+        - ZA
+      type: string
+      example: AL
+    Country:
+      description: A short alphabetic, geographical code for a country used for data processing and communications.
+      enum:
+        - USA
+        - CA
+        - OTH
+        - US
+        - MX
+      type: string
+      example: USA
+    MainBillingAddressOfApplicant:
+      description: An address used for the delivery of letters and packages by an external mailing or packaging service, at a place where the recipient usually lives or works. Requirements - Situational - Needed when if MailingAddressSameAsLegalAddress is false.
+      type: object
+      properties:
+        first_line_address:
+          description: The first line of a formatted address - e.g., Street Number + Street Name, etc.
+          type: string
+          example: 123 Any Street
+        second_line_address:
+          description: The second line of a formatted address
+          type: string
+          example: 10th Floor
+        third_line_address:
+          description: The third line of a formatted address that is sometimes used for things like 'care of'.
+          type: string
+          example: Care of Guardian
+        city_name:
+          description: The city where the address is located.
+          type: string
+          example: New York City
+        state_province_code:
+          $ref: '#/components/schemas/StateProvince'
+        postal_code:
+          description: The unique identifier used to associate postal deliveries. This may also be referred to as zip code or post code where the address is located.
+          type: string
+          example: 53027-1234
+        country_code:
+          $ref: '#/components/schemas/Country'
+    Organization:
+      description: types of organization.
+      enum: 
+        - Corporation
+        - Partnership
+        - Proprietorship
+        - SCorp
+        - LLC
+        - NonProfit
+        - Government
+        - Other
+      type: string
+      example: Corporation
+    Correspondent:
+      type: object
+      required: 
+        - first_name
+        - last_name
+        - contact_email
+        - member_services_phone
+      properties:
+        first_name:
+          description: Describes the first name of the person on file for the policy holder.
+          type: string
+          example: "Angle"
+        last_name:
+          description: Describes the last name of the person on file for the policy holder.
+          type: string
+          example: "Mathur"
+        title:
+          description: Describes the title of the person on file for the policy holder.
+          type: string
+          example: "Mrs."
+        contact_email:
+          description: Describes the email address of the contact on file for the policy holder.
+          type: string
+          example: "angle.mathur@glic.com"
+        member_services_phone:
+          description: Describes the phone number of the contact on file for the policy holder.
+          type: string
+          example: ""
+        fax_number:
+          description: Describes the fax number of the contact on file for the policy holder.
+          type: string
+          example: ""
+    Bankruptcy:
+      type: object
+      required: 
+        - filed
+      properties:
+        filed:
+          description: Describes the confirmation of the Bankruptcy.
+          type: boolean
+          example: true
+    Participant:
+      description: Corbra participants name allowing multiple instance.
+      type: object
+      properties:
+        name:
+          type: string
+          example: "David"
+        date_of_birth:
+          description: Format of DateOfBirth is MM/DD/YYYY.
+          type: string
+          example: "06/14/2021"
+        type:
+          enum: 
+            - State
+            - Federal
+            - ExtensionOfBenefits
+          type: string
+          example: State
+        reason:
+          enum: 
+            - Disability
+            - NonDisability
+          type: string
+          example: Disability
+        continuation_start:
+          description: Format of ContinuationStart is MM/DD/YYYY.
+          type: string
+          example: "05/12/2021"
+        continuation_end:
+          description: Format of ContinuationStart is MM/DD/YYYY.
+          type: string
+          example: "07/12/2021"
+    InsuranceBrokerInformation:
+      description: Information of insurance broker.
+      type: object
+      required: 
+        - broker_name
+        - national_producer_number
+      properties:
+        broker_name:
+          type: string
+          example: "Broker"
+        national_producer_number:
+          type: string
+          example: ""
+        agent:
+          type: array
+          items:
+            $ref: '#/components/schemas/Agent'
+    Agent:
+      description: Describes the information of the agents.
+      type: object
+      properties:
+        agent_first_name:
+          type: string
+          example: "Abc"
+        agent_last_name:
+          type: string
+          example: "Corp"
+        first_line_address:
+          type: string
+          example: "Abc Corp"
+        second_line_address:
+          type: string
+          example: "2nd. lane"
+        third_line_address:
+          type: string
+          example: "street"
+        city_name:
+          type: string
+          example: "New Jersy" 
+        state_province_code:
+          $ref: '#/components/schemas/StateProvince'
+        postal_code:
+          type: string
+          example: ""
+        country_code:
+          $ref: '#/components/schemas/Country'  
+        guardian_broker_code:
+          type: string
+          example: ""
+    Commissions:
+      type: object
+      properties:
+        plan_name:
+           $ref: '#/components/schemas/CoverageType'
+        commission_percent:
+          type: string
+          example: ""
+    CoverageType:
+      description: Describes the types of coverage.
+      enum: 
+        - Dental
+        - Vision
+        - LongTermDisability
+        - ShortTermDisability
+        - MemberLife
+        - ADD
+      type: string
+      example: Dental
+    AffiliatedCompanies:
+      type: object
+      properties:
+        affiliate_name:
+          description: Describes the Affiliate name.
+          type: string
+          example: ""
+        first_line_address:
+          description: The first line of a formatted address - e.g., Street Number + Street Name, etc.
+          type: string
+          example: 123 Any Street
+        second_line_address:
+          description: The second line of a formatted address
+          type: string
+          example: 10th Floor
+        third_line_address:
+          description: The third line of a formatted address that is sometimes used for things like 'care of'.
+          type: string
+          example: Care of Guardian
+        city_name:
+          description: The city where the address is located.
+          type: string
+          example: New York City
+        state_province_code:
+          $ref: '#/components/schemas/StateProvince'
+        postal_code:
+          description: The unique identifier used to associate postal deliveries. This may also be referred to as zip code or post code where the address is located.
+          type: string
+          example: 53027-1234
+        country_code:
+          $ref: '#/components/schemas/Country'
+    EmployerContribution:
+      type: object
+      required: 
+        - percent_employee_pays_employee
+        - percent_employee_pays_for_dependent
+      properties:
+        coverage:
+          $ref: '#/components/schemas/CoverageType'
+        percent_employee_pays_employee:
+          description: Percentage amount the employee is contributing towards the coverage.
+          type: string
+          example: "100.0"
+        percent_employee_pays_for_dependent:
+          description: Percentage amount the employee is contributing towards the coverage.
+          type: string
+          example: "100.0"
+    BenefitClassDefinitions:
+      type: object
+      required: 
+        - benefit_class_description
+        - hourly_work_requirements
+      properties:
+        benefit_class_description:
+          description: The display name of the eligibility or population group.
+          type: string
+          example: ""
+        hourly_work_requirements:
+          description: Describes the number of hours required to be eligible for the benefit plan.
+          type: string
+          example: ""
+        
+    SuccessResponse:
+      type: object
+      properties:
+        transmission_guid:
+          type: string
+          description: Global Unique identifier created by the originator for this instance of the electronic transmission.
+          example: 030c89b1-8732-492b-b69a-2239e14264e5
+        status:
+          type: string
+          description: Indicates the status of the request. Only possible value is Success
+          example: SUCCESS
+          enum:
+          - SUCCESS
+      description: A generic response object that is returned after successfull processing of incoming request.
+      
+    ErrorResponse:
+      title: ErrorResponse
+      type: object
+      properties:
+        corelation_id:
+          type: string
+          description: Id to trace the request of the message
+          example: 030c89b1-8732-492b-b69a-2239e14264e5
+        code:
+          type: string
+          description: High level error code. The first 6 position indicates the API provider like POLICY and the next 4 position indicates the type of error. If the API is returning a 400 type of error (data error) and API provider identifier is POLICY (For POLICY API) the error code should be returned as POLICY4000, POLICY4001, etc.
+          example: POLICY4001
+        message:
+          type: string
+          description: High level Error description.
+        more_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetails'
+    ErrorDetails:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Low level error code. The first 6 position indicates the API provider like POLICY and the next 4 position indicates the type of error. If the API is returning a 400 type of error (data error) and API provider identifier is POLICY (For POLICY API) the error code should be returned as POLICY4000, POLICY4002, etc.
+          example: POLICY4002
+        field:
+          type: string
+          description: Indicates the field name(input) that caused the error
+          example: group_id
+        message:
+          type: string
+          description: Specific description of the error
+          example: Group id cannot be blank
+    

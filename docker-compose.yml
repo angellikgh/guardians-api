@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  api:
+    image: ghcr.io/guardiandirect/benworks-api:local
+    # Ensure the service responds to termination signals locally (i.e. Ctrl + c)
+    init: true
+    ports:
+      - 3001:8000
+      - 9229:9229
+    volumes:
+      - '.:/usr/src/app'
+      - '/usr/src/app/dist'
+      - '/usr/src/app/node_modules'
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      db-migration:
+        condition: service_completed_successfully
+  db-migration:
+    image: ghcr.io/guardiandirect/benworks-api:local
+    command: yarn deploy:migration
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:10.14
+    user: postgres
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 8000:5432

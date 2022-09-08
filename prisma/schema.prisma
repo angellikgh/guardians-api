@@ -1,0 +1,401 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
+  eConsent        Boolean   @default(false) @map("e_consent")
+  email           String    @unique
+  gender          String?
+  dateOfBirth     String?   @map("date_of_birth")
+  oktaUserId      String?   @unique @map("okta_user_id")
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  verifiedAt      DateTime? @map("verified_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+  employeeId String?   @unique @map("employee_id")
+  employer   Employer? @relation(fields: [employerId], references: [id])
+  employerId String?   @map("employer_id")
+  address    Address?  @relation(fields: [addressId], references: [id])
+  addressId  String?   @unique @map("address_id")
+
+  quote                  Quote?
+  passwordToken          PasswordToken?
+  emailVerificationToken EmailVerificationToken?
+  dependents             Dependent[]
+
+  roles Role[]
+
+  @@map(name: "users")
+}
+
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  users User[]
+
+  @@map(name: "roles")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  expiresAt DateTime @default(now()) @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @map("user_id")
+
+  @@map("email_verification_tokens")
+}
+
+model Employer {
+  id                                  String   @id @default(uuid())
+  name                                String?
+  w2Employees                         Int?     @map("w2_employees")
+  organizationType                    String?  @map("organization_type")
+  establishedDate                     String?  @map("established_date")
+  industry                            String?
+  sicCode                             String?  @map("sic_code")
+  hasFiledBankruptcy                  Boolean? @map("has_filed_bankruptcy")
+  federalEmployerIdentificationNumber String?  @map("federal_employer_identification_number")
+  masterAgreementNumber               String?  @unique @map("master_agreement_number")
+  createdAt                           DateTime @default(now()) @map("created_at")
+  updatedAt                           DateTime @updatedAt @map("updated_at")
+
+  address     Address?     @relation(fields: [addressId], references: [id])
+  addressId   String?      @unique @map("address_id")
+  users       User[]
+  Quote       Quote[]
+  invitations Invitation[]
+  email       Email[]
+  esign       Esign[]
+  documents   Document[]
+
+  @@map(name: "employers")
+}
+
+model Document {
+  id                        String @id @default(uuid())
+  documentDate              String @map("document_date")
+  documentDownloadAssetPath String @map("document_download_asset_path")
+  documentTitle             String @map("document_title")
+  employerId                String @map("employer_id")
+
+  Employer Employer @relation(fields: [employerId], references: [id])
+
+  @@map(name: "documents")
+}
+
+model Benefit {
+  id                        String             @id @default(uuid())
+  hasDeclinedCoverage       Boolean?           @map("has_declined_coverage")
+  employeeSelection         EmployeeSelection? @map("employee_selection")
+  previousEmployeeSelection EmployeeSelection? @map("previous_employee_selection")
+  signedAt                  String?            @map("signed_at")
+
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+  employeeId String?   @map("employee_id")
+  esign      Esign[]
+
+  rate   Rate   @relation(fields: [rateId], references: [id])
+  rateId String @map("rate_id")
+
+  @@map(name: "benefits")
+}
+
+model Employee {
+  id                     String   @id @default(uuid())
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  dateOfHire             String   @map("date_of_hire")
+  benefitStartDate       String?  @map("benefit_start_date")
+  attestationConsentDate String?  @map("attestation_consent_date")
+
+  user       User?
+  invitation Invitation?
+  benefits   Benefit[]
+  esign      Esign[]
+
+  @@map(name: "employees")
+}
+
+model Address {
+  id           String   @id @default(uuid())
+  addressLine1 String?  @map("address_line_1")
+  addressLine2 String?  @map("address_line_2")
+  city         String?
+  zipCode      String?  @map("zip_code")
+  state        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  employer   Employer?
+  user       User?
+  dependents Dependent[]
+
+  @@map(name: "addresses")
+}
+
+model Quote {
+  id                                  String   @id @default(uuid())
+  companyName                         String?  @map("company_name")
+  w2Employees                         Int?     @map("w2_employees")
+  industry                            String?
+  sicCode                             String?  @map("sic_code")
+  state                               String?
+  zipCode                             String?  @map("zip_code")
+  selectedICHRAContribution           Int?     @map("selected_ICHRA_contribution")
+  hasDeclinedHealthCoverage           Boolean? @map("has_declined_health_coverage")
+  createdAt                           DateTime @default(now()) @map("created_at")
+  updatedAt                           DateTime @updatedAt @map("updated_at")
+  rates                               Rate[]
+  // From Application
+  addressLine1                        String?  @map("address_line_1")
+  addressLine2                        String?  @map("address_line_2")
+  city                                String?
+  organizationType                    String?  @map("organization_type")
+  establishedDate                     String?  @map("established_date")
+  federalEmployerIdentificationNumber String?  @map("federal_employer_identification_number")
+  hasFiledBankruptcy                  Boolean? @map("has_filed_bankruptcy")
+  correspondentFirstName              String?  @map("correspondent_first_name")
+  correspondentLastName               String?  @map("correspondent_last_name")
+  correspondentPrimaryEmail           String?  @map("correspondent_primary_email")
+  correspondentPrimaryPhone           String?  @map("correspondent_primary_phone")
+  authorizedSignerEmail               String?  @map("authorized_signer_email")
+  authorizedSignerFirstName           String?  @map("authorized_signer_first_name")
+  authorizedSignerLastName            String?  @map("authorized_signer_last_name")
+  // HelloSign
+  signatureRequestId                  String?  @map("signature_request_id")
+  masterApplicationSignatureDate      String?  @map("master_application_signature_date")
+  // Guardian API
+  transmissionGuid                    String?  @unique @map("transmission_guid")
+  policyEffectiveDate                 String?  @map("policy_effective_date")
+  //
+  masterAgreementNumber               String?  @map("master_agreement_number")
+  requestedRenewalDate                String?  @map("requested_renewal_date") // TODO: what is the purpose of this value?
+  possibleEnrollmentStartDate         String?  @map("possible_enrollment_start_date")
+  possibleEnrollmentEndDate           String?  @map("possible_enrollment_end_date")
+  selectedEnrollmentStartDate         String?  @map("selected_enrollment_start_date")
+  selectedEnrollmentEndDate           String?  @map("selected_enrollment_end_date")
+  //
+  reportedDate                        String?  @map("reported_date")
+  processedDate                       String?  @map("processed_date")
+
+  status Status @default(IN_PROGRESS)
+
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String    @unique @map("user_id")
+  employer   Employer? @relation(fields: [employerId], references: [id])
+  employerId String?   @map("employer_id")
+
+  QuotesSubmissionHistory QuotesSubmissionHistory[]
+  @@map(name: "quotes")
+}
+
+model Rate {
+  id                  String   @id @default(uuid())
+  product             String
+  planType            String?
+  hasDeclinedProduct  Boolean? @map("has_declined_product")
+  contributionPercent Int?     @map("contribution_percent")
+  employee            Float
+  employeeAndSpouse   Float    @map("employee_and_spouse")
+  employeeAndChildren Float    @map("employee_and_children")
+  employeeFamily      Float    @map("employee_family")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  quote   Quote?  @relation(fields: [quoteId], references: [id])
+  quoteId String? @map("quote_id")
+
+  quotesSubmissionHistory   QuotesSubmissionHistory? @relation(fields: [quotesSubmissionHistoryId], references: [id])
+  quotesSubmissionHistoryId String?                  @map("quotes_submission_history_id")
+
+  Benefit Benefit[]
+  @@map(name: "rates")
+}
+
+model PasswordToken {
+  id        String   @id @default(uuid())
+  expiresAt DateTime @default(now()) @map(name: "expires_at")
+  createdAt DateTime @default(now()) @map(name: "created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @map("user_id")
+
+  @@map(name: "password_tokens")
+}
+
+model Invitation {
+  firstName          String           @map("first_name")
+  lastName           String           @map("last_name")
+  email              String
+  dateOfHire         String           @map("date_of_hire")
+  // Assume existing invitation records have minimum 12.5 hours needed
+  hoursWorkedPerWeek Float            @default(12.5) @map("hours_worked_per_week")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  reportedDate       String?          @map("reported_date")
+  status             InvitationStatus @default(INVITED)
+
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+  employeeId String?   @unique @map("employee_id")
+  employer   Employer  @relation(fields: [employerId], references: [id])
+  employerId String    @map("employer_id")
+
+  @@id([email, employerId])
+  @@map(name: "invitations")
+}
+
+model Dependent {
+  id                     String   @id @default(uuid())
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  relationshipToEmployee String   @map("relationship_to_employee")
+  dateOfBirth            String   @map("date_of_birth") // MM/DD/YYYY
+  firstName              String   @map("first_name")
+  lastName               String   @map("last_name")
+  gender                 String
+  isEligible             Boolean  @default(true) @map("is_eligible")
+
+  address   Address @relation(fields: [addressId], references: [id])
+  addressId String  @map("address_id")
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @map("user_id")
+
+  @@map(name: "dependents")
+}
+
+model Email {
+  id        String @id @default(uuid())
+  sendTo    String @map("send_to")
+  emailType String @map("email_type")
+  dateSent  String @map("date_sent")
+
+  employer   Employer @relation(fields: [employerId], references: [id])
+  employerId String   @map("employer_id")
+
+  @@map(name: "emails")
+}
+
+model Esign {
+  user     String @map("user")
+  signedAt String @map("signed_at")
+
+  benefit    Benefit  @relation(fields: [benefitId], references: [id])
+  benefitId  String   @map("benefit_id")
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId String   @map("employee_id")
+  employer   Employer @relation(fields: [employerId], references: [id])
+  employerId String   @map("employer_id")
+
+  @@id([user, signedAt, benefitId])
+  @@map(name: "esigns")
+}
+
+model QuotesSubmissionHistory {
+  id            String   @id @default(uuid())
+  createdAt     DateTime @default(now()) @map("created_at")
+  isRequote     Boolean   @default(false)
+  isReportSent  Boolean   @default(false)
+
+  quote   Quote?  @relation(fields: [quoteId], references: [id])
+  quoteId String? @map("quote_id")
+
+  @@map(name: "quotes_submission_history")
+  Rate Rate[]
+}
+
+enum State {
+  AL
+  AK
+  AS
+  AZ
+  AR
+  CA
+  CO
+  CT
+  DE
+  DC
+  FM
+  FL
+  GA
+  GU
+  HI
+  ID
+  IL
+  IN
+  IA
+  KS
+  KY
+  LA
+  ME
+  MH
+  MD
+  MA
+  MI
+  MN
+  MS
+  MO
+  MT
+  NE
+  NV
+  NH
+  NJ
+  NM
+  NY
+  NC
+  ND
+  MP
+  OH
+  OK
+  OR
+  PW
+  PA
+  PR
+  RI
+  SC
+  SD
+  TN
+  TX
+  UT
+  VT
+  VI
+  VA
+  WA
+  WV
+  WI
+  WY
+}
+
+enum Status {
+  IN_PROGRESS
+  IN_PROGRESS_APPLICATION
+  AWAITING_SIGNATURES
+  ALL_SIGNED
+  SUBMITTED
+  PROCESSED
+}
+
+enum EmployeeSelection {
+  EMPLOYEE
+  EMPLOYEE_SPOUSE
+  EMPLOYEE_CHILDREN
+  EMPLOYEE_FAMILY
+}
+
+enum InvitationStatus {
+  INVITED
+  IN_PROGRESS
+  ENROLLED
+}
